@@ -10,17 +10,16 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * Visual and sound FX helpers using high-visibility, forced-delivery particles.
+ * Visual and sound FX helpers using high-visibility Minecraft particles.
  */
 public final class BlackHoleFx {
     private BlackHoleFx() {}
 
     /**
-     * Sends particles with longDistance = true so that Minecraft NEVER drops or hides them,
-     * even with decreased particle settings or distance.
+     * Spawns a cluster of particles using the standard ServerLevel particle pipeline.
      */
     public static void burst(ServerLevel level, ParticleOptions particle, Vec3 at, int count, double spread, double speed) {
-        level.sendParticles(particle, true, at.x, at.y, at.z, count, spread, spread, spread, speed);
+        level.sendParticles(particle, at.x, at.y, at.z, count, spread, spread, spread, speed);
     }
 
     /**
@@ -30,7 +29,7 @@ public final class BlackHoleFx {
         if (radius <= 0.05) return;
         for (int i = 0; i < points; i++) {
             double angle = Math.PI * 2 * i / points;
-            level.sendParticles(particle, true, centre.x + Math.cos(angle) * radius, centre.y, centre.z + Math.sin(angle) * radius, 1, 0, 0, 0, 0);
+            level.sendParticles(particle, centre.x + Math.cos(angle) * radius, centre.y, centre.z + Math.sin(angle) * radius, 1, 0, 0, 0, 0);
         }
     }
 
@@ -39,11 +38,11 @@ public final class BlackHoleFx {
      */
     public static void eventHorizonSphere(ServerLevel level, Vec3 centre, double radius, int count) {
         // Dense black smoke core
-        level.sendParticles(ParticleTypes.SQUID_INK, true, centre.x, centre.y, centre.z, count, radius * 0.4, radius * 0.4, radius * 0.4, 0.02);
+        level.sendParticles(ParticleTypes.SQUID_INK, centre.x, centre.y, centre.z, count, radius * 0.4, radius * 0.4, radius * 0.4, 0.02);
         // Purple dimensional suction motes
-        level.sendParticles(ParticleTypes.REVERSE_PORTAL, true, centre.x, centre.y, centre.z, Math.max(5, count / 3), radius * 0.5, radius * 0.5, radius * 0.5, 0.05);
+        level.sendParticles(ParticleTypes.REVERSE_PORTAL, centre.x, centre.y, centre.z, Math.max(5, count / 3), radius * 0.5, radius * 0.5, radius * 0.5, 0.05);
         // Deep purple cosmic mist
-        level.sendParticles(ParticleTypes.DRAGON_BREATH, true, centre.x, centre.y, centre.z, Math.max(2, count / 6), radius * 0.3, radius * 0.3, radius * 0.3, 0.01);
+        level.sendParticles(ParticleTypes.DRAGON_BREATH, centre.x, centre.y, centre.z, Math.max(2, count / 6), radius * 0.3, radius * 0.3, radius * 0.3, 0.01);
     }
 
     /**
@@ -59,7 +58,7 @@ public final class BlackHoleFx {
             double y = Math.sin(angle * 2.0) * 0.2;
 
             ParticleOptions p = (i % 3 == 0) ? ParticleTypes.FLAME : ((i % 3 == 1) ? ParticleTypes.SOUL_FIRE_FLAME : ParticleTypes.LAVA);
-            level.sendParticles(p, true, centre.x + x, centre.y + y, centre.z + z, 1, 0.02, 0.02, 0.02, 0.01);
+            level.sendParticles(p, centre.x + x, centre.y + y, centre.z + z, 1, 0.02, 0.02, 0.02, 0.01);
         }
     }
 
@@ -77,7 +76,7 @@ public final class BlackHoleFx {
                 double y = (step * 0.25) - 0.3;
 
                 ParticleOptions p = (arm % 2 == 0) ? ParticleTypes.PORTAL : ParticleTypes.DRAGON_BREATH;
-                level.sendParticles(p, true, centre.x + x, centre.y + y, centre.z + z, 1, 0.05, 0.05, 0.05, 0.02);
+                level.sendParticles(p, centre.x + x, centre.y + y, centre.z + z, 1, 0.05, 0.05, 0.05, 0.02);
             }
         }
     }
