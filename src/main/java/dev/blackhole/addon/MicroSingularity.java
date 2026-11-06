@@ -19,7 +19,7 @@ import net.minecraft.world.phys.Vec3;
  * then detonates upon block collision or after reaching maximum lifespan.
  */
 public final class MicroSingularity implements SkillBehavior {
-    private static final int MAX_AGE = 70; // 3.5 seconds
+    private static final int MAX_AGE = 70;
     private static final double SPEED = 0.45;
 
     @Override
@@ -38,8 +38,8 @@ public final class MicroSingularity implements SkillBehavior {
         state.microMotion = look.scale(SPEED);
 
         ServerLevel level = player.serverLevel();
-        BlackHoleFx.sound(level, state.microPos, SoundEvents.RESPAWN_ANCHOR_SET_SPAWN, 1.5f, 0.5f);
-        BlackHoleFx.sound(level, state.microPos, SoundEvents.ENDER_DRAGON_FLAP, 1.2f, 0.4f);
+        BlackHoleFx.sound(level, state.microPos, SoundEvents.RESPAWN_ANCHOR_SET_SPAWN, 1.8f, 0.4f);
+        BlackHoleFx.sound(level, state.microPos, SoundEvents.ENDER_DRAGON_FLAP, 1.5f, 0.4f);
 
         return ActivationOutcome.STARTED;
     }
@@ -58,11 +58,9 @@ public final class MicroSingularity implements SkillBehavior {
             return false;
         }
 
-        // Advance position
         Vec3 currentPos = state.microPos;
         Vec3 nextPos = currentPos.add(state.microMotion);
 
-        // Check for solid block collision
         BlockPos blockPos = BlockPos.containing(nextPos.x, nextPos.y, nextPos.z);
         if (level.getBlockState(blockPos).isSolid()) {
             detonate(c, player, level, currentPos);
@@ -71,17 +69,18 @@ public final class MicroSingularity implements SkillBehavior {
         state.microPos = nextPos;
 
         // Visuals of the traveling black hole
-        BlackHoleFx.eventHorizonSphere(level, nextPos, 0.7, 16);
-        // Accretion ring around the micro black hole
-        BlackHoleFx.ring(level, BlackHoleFx.ORANGE, nextPos, 1.2, 16);
-        BlackHoleFx.burst(level, ParticleTypes.REVERSE_PORTAL, nextPos, 5, 0.3, 0.02);
+        BlackHoleFx.burst(level, ParticleTypes.SQUID_INK, nextPos, 16, 0.35, 0.02);
+        BlackHoleFx.burst(level, ParticleTypes.REVERSE_PORTAL, nextPos, 8, 0.4, 0.05);
+        BlackHoleFx.burst(level, ParticleTypes.DRAGON_BREATH, nextPos, 4, 0.25, 0.01);
+        BlackHoleFx.ring(level, ParticleTypes.FLAME, nextPos, 1.1, 16);
+        BlackHoleFx.burst(level, ParticleTypes.PORTAL, nextPos, 10, 1.0, 0.2);
 
         if (age % 5 == 0) {
-            BlackHoleFx.sound(level, nextPos, SoundEvents.BEACON_AMBIENT, 0.8f, 1.6f);
+            BlackHoleFx.sound(level, nextPos, SoundEvents.BEACON_AMBIENT, 1.2f, 1.6f);
         }
 
-        // Pull nearby entities toward the micro singularity
-        double suctionRadius = 6.0;
+        // Pull nearby entities
+        double suctionRadius = 7.0;
         for (LivingEntity target : Targeting.within(level, nextPos, suctionRadius, player)) {
             if (!AcademySafety.mayAttack(c.actor(), target, BlackHoleMod.MICRO_SINGULARITY)) continue;
 
@@ -89,13 +88,12 @@ public final class MicroSingularity implements SkillBehavior {
             double dist = toCenter.length();
             if (dist < 0.6) continue;
 
-            double pull = Math.min(0.25 * Targeting.controlFactor(target), dist * 0.15);
-            target.setDeltaMovement(target.getDeltaMovement().scale(0.7).add(toCenter.normalize().scale(pull)));
+            double pull = Math.min(0.3 * Targeting.controlFactor(target), dist * 0.18);
+            target.setDeltaMovement(target.getDeltaMovement().scale(0.65).add(toCenter.normalize().scale(pull)));
             target.hurtMarked = true;
 
-            // Continuous erosion damage
             if (age % 6 == 0) {
-                AcademySafety.attack(c.actor(), target, BlackHoleMod.MICRO_SINGULARITY, 2.5f);
+                AcademySafety.attack(c.actor(), target, BlackHoleMod.MICRO_SINGULARITY, 3.0f);
             }
         }
 
@@ -103,28 +101,29 @@ public final class MicroSingularity implements SkillBehavior {
     }
 
     private static void detonate(ActivationContext c, ServerPlayer player, ServerLevel level, Vec3 center) {
-        double radius = 7.0 + 2.0 * c.proficiency();
-        float baseDamage = 22.0f + 12.0f * c.proficiency();
+        double radius = 8.0 + 2.0 * c.proficiency();
+        float baseDamage = 25.0f + 12.0f * c.proficiency();
 
         int hits = 0;
         for (LivingEntity target : Targeting.within(level, center, radius, player)) {
             if (!AcademySafety.attack(c.actor(), target, BlackHoleMod.MICRO_SINGULARITY, baseDamage)) continue;
 
             Vec3 away = Targeting.centre(target).subtract(center);
-            Vec3 dir = away.lengthSqr() < 0.01 ? new Vec3(0, 0.5, 0) : away.normalize();
-            target.setDeltaMovement(dir.scale(1.2));
+            Vec3 dir = away.lengthSqr() < 0.01 ? new Vec3(0, 0.6, 0) : away.normalize();
+            target.setDeltaMovement(dir.scale(1.4));
             target.hurtMarked = true;
             hits++;
         }
 
-        // Collapse FX
-        BlackHoleFx.sound(level, center, SoundEvents.GENERIC_EXPLODE, 1.8f, 0.7f);
-        BlackHoleFx.sound(level, center, SoundEvents.WARDEN_SONIC_BOOM, 1.3f, 1.1f);
-        BlackHoleFx.burst(level, ParticleTypes.FLASH, center, 1, 0, 0);
-        BlackHoleFx.burst(level, ParticleTypes.EXPLOSION_EMITTER, center, 2, 1.0, 0);
-        BlackHoleFx.burst(level, BlackHoleFx.BLACK, center, 60, radius * 0.5, 0.2);
-        BlackHoleFx.burst(level, BlackHoleFx.PURPLE, center, 50, radius * 0.5, 0.25);
-        BlackHoleFx.ring(level, BlackHoleFx.CYAN, center, radius, 36);
+        // Massive collapse FX
+        BlackHoleFx.sound(level, center, SoundEvents.GENERIC_EXPLODE, 2.0f, 0.7f);
+        BlackHoleFx.sound(level, center, SoundEvents.WARDEN_SONIC_BOOM, 1.8f, 1.1f);
+        BlackHoleFx.burst(level, ParticleTypes.FLASH, center, 2, 0, 0);
+        BlackHoleFx.burst(level, ParticleTypes.EXPLOSION_EMITTER, center, 3, 1.2, 0);
+        BlackHoleFx.burst(level, ParticleTypes.SONIC_BOOM, center, 1, 0, 0);
+        BlackHoleFx.burst(level, ParticleTypes.DRAGON_BREATH, center, 80, radius * 0.5, 0.25);
+        BlackHoleFx.burst(level, ParticleTypes.SQUID_INK, center, 60, radius * 0.4, 0.15);
+        BlackHoleFx.ring(level, ParticleTypes.SOUL_FIRE_FLAME, center, radius, 36);
 
         if (hits > 0) {
             c.addProficiency(0.02f * Math.min(hits, 4));
@@ -139,6 +138,6 @@ public final class MicroSingularity implements SkillBehavior {
             state.microPos = null;
             state.microMotion = null;
         }
-        c.setCooldown(80); // 4 seconds cooldown
+        c.setCooldown(70);
     }
 }

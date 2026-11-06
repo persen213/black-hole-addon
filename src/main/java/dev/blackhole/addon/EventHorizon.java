@@ -20,7 +20,7 @@ import net.minecraft.world.phys.Vec3;
  * Incoming projectiles are forced down; nearby enemies are weighed down and continuously crushed.
  */
 public final class EventHorizon implements SkillBehavior {
-    private static final double RADIUS = 7.5;
+    private static final double RADIUS = 8.0;
 
     @Override
     public ActivationOutcome start(ActivationContext c) {
@@ -35,9 +35,10 @@ public final class EventHorizon implements SkillBehavior {
         state.eventHorizon = true;
 
         ServerLevel level = player.serverLevel();
-        BlackHoleFx.sound(level, player.position(), SoundEvents.BEACON_ACTIVATE, 1.4f, 0.6f);
-        BlackHoleFx.sound(level, player.position(), SoundEvents.WARDEN_HEARTBEAT, 1.5f, 0.7f);
+        BlackHoleFx.sound(level, player.position(), SoundEvents.BEACON_ACTIVATE, 1.8f, 0.5f);
+        BlackHoleFx.sound(level, player.position(), SoundEvents.WARDEN_HEARTBEAT, 1.8f, 0.6f);
         BlackHoleFx.burst(level, ParticleTypes.FLASH, player.position().add(0, 1, 0), 1, 0, 0);
+        BlackHoleFx.burst(level, ParticleTypes.DRAGON_BREATH, player.position().add(0, 1, 0), 30, 1.5, 0.05);
 
         return ActivationOutcome.STARTED;
     }
@@ -48,7 +49,6 @@ public final class EventHorizon implements SkillBehavior {
         BlackHoleState state = player == null ? null : BlackHoleState.peek(player);
         if (player == null || state == null || !state.eventHorizon) return false;
 
-        // Drain CP every tick
         if (!c.pay(BlackHoleCosts.EVENT_HORIZON_TICK_CP, 0.2f)) {
             return false;
         }
@@ -57,30 +57,35 @@ public final class EventHorizon implements SkillBehavior {
         Vec3 pos = player.position();
         int age = c.age();
 
-        // Pulsing gravitational field rings
-        if (age % 4 == 0) {
-            double r = (age % 24) / 24.0 * RADIUS;
-            BlackHoleFx.ring(level, BlackHoleFx.BLACK, pos.add(0, 0.15, 0), r, 28);
+        // High-visibility aura around the player
+        if (age % 3 == 0) {
+            BlackHoleFx.burst(level, ParticleTypes.REVERSE_PORTAL, pos.add(0, 1.0, 0), 8, 0.8, 0.05);
+            BlackHoleFx.burst(level, ParticleTypes.SQUID_INK, pos.add(0, 0.8, 0), 4, 0.5, 0.02);
         }
-        if (age % 8 == 0) {
-            BlackHoleFx.ring(level, BlackHoleFx.PURPLE, pos.add(0, 0.2, 0), RADIUS, 36);
+
+        // Concentric gravity rings on the ground
+        if (age % 6 == 0) {
+            double r = ((age % 30) / 30.0) * RADIUS;
+            BlackHoleFx.ring(level, ParticleTypes.SOUL_FIRE_FLAME, pos.add(0, 0.15, 0), r, 24);
+        }
+        if (age % 10 == 0) {
+            BlackHoleFx.ring(level, ParticleTypes.PORTAL, pos.add(0, 0.2, 0), RADIUS, 32);
         }
 
         // Heavy gravity effect on enemies
-        if (age % 10 == 0) {
+        if (age % 8 == 0) {
             for (LivingEntity target : Targeting.within(level, pos, RADIUS, player)) {
                 if (!AcademySafety.mayAttack(c.actor(), target, BlackHoleMod.EVENT_HORIZON)) continue;
 
-                // Heavy downward force & slowness
                 target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 30, 2, false, false));
                 target.setDeltaMovement(target.getDeltaMovement().multiply(0.4, 0.2, 0.4));
                 target.hurtMarked = true;
 
-                // Gravitational crush damage
-                float damage = 2.0f + 1.5f * c.proficiency();
+                float damage = 2.5f + 1.8f * c.proficiency();
                 AcademySafety.attack(c.actor(), target, BlackHoleMod.EVENT_HORIZON, damage);
 
-                BlackHoleFx.burst(level, BlackHoleFx.BLACK, target.position().add(0, 0.5, 0), 4, 0.2, 0.05);
+                BlackHoleFx.burst(level, ParticleTypes.SQUID_INK, target.position().add(0, 0.5, 0), 8, 0.3, 0.05);
+                BlackHoleFx.burst(level, ParticleTypes.DRAGON_BREATH, target.position().add(0, 0.5, 0), 5, 0.3, 0.02);
             }
         }
 
@@ -96,9 +101,10 @@ public final class EventHorizon implements SkillBehavior {
         }
         if (player != null) {
             ServerLevel level = player.serverLevel();
-            BlackHoleFx.sound(level, player.position(), SoundEvents.BEACON_DEACTIVATE, 1.2f, 0.6f);
-            BlackHoleFx.burst(level, BlackHoleFx.PURPLE, player.position().add(0, 1, 0), 20, 1.0, 0.05);
+            BlackHoleFx.sound(level, player.position(), SoundEvents.BEACON_DEACTIVATE, 1.4f, 0.6f);
+            BlackHoleFx.burst(level, ParticleTypes.DRAGON_BREATH, player.position().add(0, 1, 0), 35, 1.2, 0.08);
+            BlackHoleFx.burst(level, ParticleTypes.SQUID_INK, player.position().add(0, 1, 0), 20, 0.8, 0.05);
         }
-        c.setCooldown(40);
+        c.setCooldown(35);
     }
 }
