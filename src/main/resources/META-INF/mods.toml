@@ -1,0 +1,34 @@
+modLoader="javafml"
+loaderVersion="[47,48)"
+license="All Rights Reserved"
+
+[[mods]]
+modId="blackhole"
+version="${version}"
+displayName="Graviton - Black Hole Manipulation (Re:AcademyCraft Add-on)"
+description='''
+Adds the Graviton / Black Hole Esper ability category to Re:AcademyCraft:
+Gravitational Pull, Event Horizon Field, Gravitational Repulsion,
+Micro Singularity, and Supermassive Black Hole with custom particle effects and physics.
+'''
+
+[[dependencies.blackhole]]
+modId="academy"
+mandatory=true
+versionRange="[1.5.0,1.6)"
+ordering="AFTER"
+side="BOTH"
+
+[[dependencies.blackhole]]
+modId="forge"
+mandatory=true
+versionRange="[47.4.10,48)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.blackhole]]
+modId="minecraft"
+mandatory=true
+versionRange="[1.20.1,1.20.2)"
+ordering="NONE"
+side="BOTH"

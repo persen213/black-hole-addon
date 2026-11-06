@@ -1,0 +1,19 @@
+{
+  "item.blackhole.blackhole_factor": "Singularity Factor",
+  "blackhole.ability.blackhole": "Graviton (Black Hole)",
+
+  "blackhole.skill.gravity_pull": "Gravitational Pull",
+  "blackhole.skill.gravity_pull.desc": "Manipulate gravitational gradients to yank target entities violently toward your focal point.",
+
+  "blackhole.skill.event_horizon": "Event Horizon Field",
+  "blackhole.skill.event_horizon.desc": "Emit an intense personal gravitational aura: incoming hostile projectiles are forced downward into the ground, and enemies are slowed and crushed.",
+
+  "blackhole.skill.gravity_repulsion": "Gravitational Repulsion",
+  "blackhole.skill.gravity_repulsion.desc": "Invert gravity in an instantaneous shockwave, violently flinging all surrounding enemies into the air with heavy blunt force.",
+
+  "blackhole.skill.micro_singularity": "Micro Singularity",
+  "blackhole.skill.micro_singularity.desc": "Fire a condensed vortex orb that continuously vacuums up nearby mobs and projectiles along its flight path before imploding.",
+
+  "blackhole.skill.supermassive_black_hole": "Supermassive Black Hole",
+  "blackhole.skill.supermassive_black_hole.desc": "Summon a celestial Black Hole with a spinning accretion disk. Sucks in all entities within 25 blocks and collapses into a devastating singularity explosion."
+}
